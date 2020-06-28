@@ -99,13 +99,13 @@ int main() {
           std::cout << std::endl;
           std::cout << "--- reference path ---" << std::endl;
           for(size_t i = 0; i < ptsx.size(); i++) {
-              std::cout << "(" << ptsx[i] << ", " << ptsy[i] << ")";
-              if(i == ptsx.size() - 1) {
-                  std::cout << std::endl;
-              }
-              else {
-                  std::cout << ", " << std::endl;
-              }
+            std::cout << "(" << ptsx[i] << ", " << ptsy[i] << ")";
+            if(i == ptsx.size() - 1) {
+              std::cout << std::endl;
+            }
+            else {
+              std::cout << ", " << std::endl;
+            }
           }
 
           std::cout << "--- current state of vehicle ---" << std::endl;
@@ -123,10 +123,10 @@ int main() {
           Eigen::VectorXd relative_ptsx(ref_size);
           Eigen::VectorXd relative_ptsy(ref_size);
           for(size_t i = 0; i < ref_size; i++) {
-              const double dx = ptsx[i] - px;
-              const double dy = ptsy[i] - py;
-              relative_ptsx[i] = dx * cospsi - dy * sinpsi;
-              relative_ptsy[i] = dy * cospsi + dx * sinpsi;
+            const double dx = ptsx[i] - px;
+            const double dy = ptsy[i] - py;
+            relative_ptsx[i] = dx * cospsi - dy * sinpsi;
+            relative_ptsy[i] = dy * cospsi + dx * sinpsi;
           }
 
           const auto coeffs = polyfit(relative_ptsx, relative_ptsy, order);
@@ -168,8 +168,8 @@ int main() {
           smoothed_relative_ptsx[0] = relative_ptsx[0];
           smoothed_relative_ptsy[0] = polyeval(coeffs, smoothed_relative_ptsx[0]);
           for(size_t i = 1; i < smoothing_ref_size; i++) {
-              smoothed_relative_ptsx[i] = smoothed_relative_ptsx[i - 1] + smoothing_delta_x;
-              smoothed_relative_ptsy[i] = polyeval(coeffs, smoothed_relative_ptsx[i]);
+            smoothed_relative_ptsx[i] = smoothed_relative_ptsx[i - 1] + smoothing_delta_x;
+            smoothed_relative_ptsy[i] = polyeval(coeffs, smoothed_relative_ptsx[i]);
           }
 
           msgJson["next_x"] = eigenv2stdv(smoothed_relative_ptsx);
@@ -192,7 +192,7 @@ int main() {
         }  // end "telemetry" if
       } else {
         // Manual driving
-          std::string msg = "42[\"manual\",{}]";
+        std::string msg = "42[\"manual\",{}]";
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }  // end websocket if
