@@ -118,6 +118,7 @@ int main() {
           const auto ref_size = ptsx.size();
           const auto cospsi   = std::cos(-psi);
           const auto sinpsi   = std::sin(-psi);
+          const auto order    = 3;
 
           Eigen::VectorXd relative_ptsx(ref_size);
           Eigen::VectorXd relative_ptsy(ref_size);
@@ -127,6 +128,8 @@ int main() {
               relative_ptsx[i] = dx * cospsi - dy * sinpsi;
               relative_ptsy[i] = dy * cospsi + dx * sinpsi;
           }
+
+          const auto coeffs = polyfit(relative_ptsx, relative_ptsy, order);
 
           /**
            * TODO: Calculate steering angle and throttle using MPC.
@@ -155,8 +158,22 @@ int main() {
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
 
-          msgJson["next_x"] = eigenv2stdv(relative_ptsx);
-          msgJson["next_y"] = eigenv2stdv(relative_ptsy);
+          // calculate smoothed reference path
+          const auto smoothing_ratio    = 3;
+          const auto smoothing_ref_size = ref_size * smoothing_ratio;
+          const auto smoothing_delta_x  = std::abs(relative_ptsx[ref_size - 1] - relative_ptsx[0]) / smoothing_ref_size;
+          Eigen::VectorXd smoothed_relative_ptsx(smoothing_ref_size);
+          Eigen::VectorXd smoothed_relative_ptsy(smoothing_ref_size);
+
+          smoothed_relative_ptsx[0] = relative_ptsx[0];
+          smoothed_relative_ptsy[0] = polyeval(coeffs, smoothed_relative_ptsx[0]);
+          for(size_t i = 1; i < smoothing_ref_size; i++) {
+              smoothed_relative_ptsx[i] = smoothed_relative_ptsx[i - 1] + smoothing_delta_x;
+              smoothed_relative_ptsy[i] = polyeval(coeffs, smoothed_relative_ptsx[i]);
+          }
+
+          msgJson["next_x"] = eigenv2stdv(smoothed_relative_ptsx);
+          msgJson["next_y"] = eigenv2stdv(smoothed_relative_ptsy);
 
           //--- dump output data
           std::cout << "--- output calc by MPC ---" << std::endl;
