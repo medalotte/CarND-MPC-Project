@@ -33,7 +33,6 @@ int main() {
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
     string sdata = string(data).substr(0, length);
-    std::cout << sdata << std::endl;
     if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
       string s = hasData(sdata);
       if (s != "") {
@@ -47,6 +46,25 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+
+          //--- dump input data
+          std::cout << std::endl;
+          std::cout << "--- reference path ---" << std::endl;
+          for(size_t i = 0; i < ptsx.size(); i++) {
+              std::cout << "(" << ptsx[i] << ", " << ptsy[i] << ")";
+              if(i == ptsx.size() - 1) {
+                  std::cout << std::endl;
+              }
+              else {
+                  std::cout << ", " << std::endl;
+              }
+          }
+
+          std::cout << "--- current state of vehicle ---" << std::endl;
+          std::cout << "px : " << px << std::endl;
+          std::cout << "py : " << py << std::endl;
+          std::cout << "psi : " << psi << std::endl;
+          std::cout << "v : " << v << std::endl;
 
           /**
            * TODO: Calculate steering angle and throttle using MPC.
@@ -89,6 +107,8 @@ int main() {
           msgJson["next_y"] = next_y_vals;
 
 
+          //--- dump output data
+          std::cout << "--- output calc by MPC ---" << std::endl;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           // Latency
