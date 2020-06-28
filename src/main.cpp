@@ -15,6 +15,11 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
+// convert Eigen::VectorXd to std::vector<double>
+std::vector<double> eigenv2stdv(const Eigen::VectorXd& v) {
+    return std::vector<double>(v.data(), v.data() + v.size());
+}
+
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
@@ -109,6 +114,20 @@ int main() {
           std::cout << "psi : " << psi << std::endl;
           std::cout << "v : " << v << std::endl;
 
+          // calculate reference path as relative coordinate from vehicle
+          const auto ref_size = ptsx.size();
+          const auto cospsi   = std::cos(-psi);
+          const auto sinpsi   = std::sin(-psi);
+
+          Eigen::VectorXd relative_ptsx(ref_size);
+          Eigen::VectorXd relative_ptsy(ref_size);
+          for(size_t i = 0; i < ref_size; i++) {
+              const double dx = ptsx[i] - px;
+              const double dy = ptsy[i] - py;
+              relative_ptsx[i] = dx * cospsi - dy * sinpsi;
+              relative_ptsy[i] = dy * cospsi + dx * sinpsi;
+          }
+
           /**
            * TODO: Calculate steering angle and throttle using MPC.
            * Both are in between [-1, 1].
@@ -136,19 +155,8 @@ int main() {
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
 
-          // Display the waypoints/reference line
-          std::vector<double> next_x_vals;
-          std::vector<double> next_y_vals;
-
-          /**
-           * TODO: add (x,y) points to list here, points are in reference to 
-           *   the vehicle's coordinate system the points in the simulator are 
-           *   connected by a Yellow line
-           */
-
-          msgJson["next_x"] = next_x_vals;
-          msgJson["next_y"] = next_y_vals;
-
+          msgJson["next_x"] = eigenv2stdv(relative_ptsx);
+          msgJson["next_y"] = eigenv2stdv(relative_ptsy);
 
           //--- dump output data
           std::cout << "--- output calc by MPC ---" << std::endl;
