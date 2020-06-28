@@ -11,11 +11,6 @@
 #include "json.hpp"
 #include "MPC.h"
 
-// for convenience
-using nlohmann::json;
-using std::string;
-using std::vector;
-
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
@@ -32,16 +27,16 @@ int main() {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
-    string sdata = string(data).substr(0, length);
+    std::string sdata = std::string(data).substr(0, length);
     if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
-      string s = hasData(sdata);
+        std::string s = hasData(sdata);
       if (s != "") {
-        auto j = json::parse(s);
-        string event = j[0].get<string>();
+        auto j = nlohmann::json::parse(s);
+        std::string event = j[0].get<std::string>();
         if (event == "telemetry") {
           // j[1] is the data JSON object
-          vector<double> ptsx = j[1]["ptsx"];
-          vector<double> ptsy = j[1]["ptsy"];
+          std::vector<double> ptsx = j[1]["ptsx"];
+          std::vector<double> ptsy = j[1]["ptsy"];
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
@@ -73,7 +68,7 @@ int main() {
           double steer_value;
           double throttle_value;
 
-          json msgJson;
+          nlohmann::json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the 
           //   steering value back. Otherwise the values will be in between 
           //   [-deg2rad(25), deg2rad(25] instead of [-1, 1].
@@ -81,8 +76,8 @@ int main() {
           msgJson["throttle"] = throttle_value;
 
           // Display the MPC predicted trajectory 
-          vector<double> mpc_x_vals;
-          vector<double> mpc_y_vals;
+          std::vector<double> mpc_x_vals;
+          std::vector<double> mpc_y_vals;
 
           /**
            * TODO: add (x,y) points to list here, points are in reference to 
@@ -94,8 +89,8 @@ int main() {
           msgJson["mpc_y"] = mpc_y_vals;
 
           // Display the waypoints/reference line
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
+          std::vector<double> next_x_vals;
+          std::vector<double> next_y_vals;
 
           /**
            * TODO: add (x,y) points to list here, points are in reference to 
@@ -124,7 +119,7 @@ int main() {
         }  // end "telemetry" if
       } else {
         // Manual driving
-        std::string msg = "42[\"manual\",{}]";
+          std::string msg = "42[\"manual\",{}]";
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }  // end websocket if
